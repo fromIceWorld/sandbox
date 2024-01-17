@@ -88,6 +88,11 @@ class Sandbox {
         // 创建对proxyWindow的代理，proxyWindow就是我们传递给自执行函数的window对象
         const sandbox = new Proxy(proxyWindow, {
             set(target, prop, value) {
+                if (prop == 'Zone') {
+                    // TODO:在不同的sandbox中运行Zone，会使页面加载失败，导致页面报错/卡住后续渲染【ng-zorro，tui】
+                    originalWindow[prop] = value;
+                    return true;
+                }
                 if (!originalWindow.hasOwnProperty(prop)) {
                     // 如果window对象上没有这个属性，那么就在状态池中记录状态的新增；
                     propertyAdded[prop] = value;
@@ -105,6 +110,10 @@ class Sandbox {
                 return true;
             },
             get(target, prop) {
+                if (prop == 'Zone') {
+                    // TODO:在不同的sandbox中运行Zone，会使页面加载失败，导致页面报错/卡住后续渲染【ng-zorro，tui】
+                    return originalWindow[prop];
+                }
                 if (prop === Symbol.unscopables) {
                     return undefined;
                 }
